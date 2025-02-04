@@ -4,7 +4,7 @@ import papermill as pm
 from flask import Flask, request, render_template, redirect, url_for, flash
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Needed for flash messages
+app.secret_key = 'secret_key'  # Needed for flash messages
 
 # Directories where JSON outputs are stored
 ANALYSIS_FOLDER = os.path.join(os.getcwd(), 'analysis')
@@ -18,8 +18,8 @@ def run_analysis(ticker: str) -> bool:
     """
     try:
         pm.execute_notebook(
-            'analyze_stock.ipynb',  # Path to your analysis notebook
-            None,  # No output notebook saved
+            'analyze_stock.ipynb',
+            None,
             parameters={'ticker': ticker}
         )
         return True
@@ -49,8 +49,8 @@ def run_dcf(ticker: str, initial_fcf: float, growth_rate: float,
     """
     try:
         pm.execute_notebook(
-            'dcf.ipynb',  # Path to your dcf notebook
-            None,  # No output notebook saved
+            'dcf.ipynb',
+            None,
             parameters={
                 'ticker': ticker,
                 'initial_fcf': initial_fcf,
