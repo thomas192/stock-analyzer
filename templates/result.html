@@ -5,11 +5,12 @@
   <title>Analysis Result for {{ ticker }}</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 2em; }
-    .container { max-width: 600px; margin: auto; }
+    .container { max-width: 800px; margin: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { padding: 8px 12px; border: 1px solid #ddd; }
     th { background-color: #f4f4f4; text-align: left; }
     .center { text-align: center; }
+    .section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; }
   </style>
 </head>
 <body>
@@ -21,19 +22,19 @@
         <th>Value</th>
       </tr>
       <tr>
-        <td>Turnover Growth</td>
+        <td>Revenue Growth*</td>
         <td class="center" {% if metrics.avg_turnover_growth is not none and metrics.avg_turnover_growth > 0.1 %} style="background-color: lightgreen;" {% endif %}>
           {{ metrics.avg_turnover_growth is not none and (metrics.avg_turnover_growth * 100)|round(2) ~ '%' or 'N/A' }}
         </td>
       </tr>
       <tr>
-        <td>FCF Growth</td>
+        <td>FCF Growth*</td>
         <td class="center" {% if metrics.avg_FCF_growth is not none and metrics.avg_FCF_growth > 0.1 %} style="background-color: lightgreen;" {% endif %}>
           {{ metrics.avg_FCF_growth is not none and (metrics.avg_FCF_growth * 100)|round(2) ~ '%' or 'N/A' }}
         </td>
       </tr>
       <tr>
-        <td>ROCE (using FCF)</td>
+        <td>ROCE with FCF*</td>
         <td class="center" {% if metrics.avg_ROCE_using_FCF is not none and metrics.avg_ROCE_using_FCF > 0.15 %} style="background-color: lightgreen;" {% endif %}>
           {{ metrics.avg_ROCE_using_FCF is not none and (metrics.avg_ROCE_using_FCF * 100)|round(2) ~ '%' or 'N/A' }}
         </td>
@@ -45,19 +46,19 @@
         </td>
       </tr>
       <tr>
-        <td>Share Number Increase</td>
+        <td>Share Number Increase*</td>
         <td class="center" {% if metrics.avg_stock_increase is not none and metrics.avg_stock_increase <= 0 %} style="background-color: lightgreen;" {% endif %}>
           {{ metrics.avg_stock_increase is not none and (metrics.avg_stock_increase * 100)|round(2) ~ '%' or 'N/A' }}
         </td>
       </tr>
       <tr>
-        <td>FCF Margin</td>
+        <td>FCF Margin*</td>
         <td class="center" {% if metrics.avg_FCF_margin is not none and metrics.avg_FCF_margin > 0.1 %} style="background-color: lightgreen;" {% endif %}>
           {{ metrics.avg_FCF_margin is not none and (metrics.avg_FCF_margin * 100)|round(2) ~ '%' or 'N/A' }}
         </td>
       </tr>
       <tr>
-        <td>Average PER (5y)</td>
+        <td>PER*</td>
         <td class="center">
           {{ metrics.average_per is not none and metrics.average_per|round(2) or 'N/A' }}
         </td>
@@ -86,8 +87,87 @@
           {{ metrics.latest_price is not none and metrics.latest_price|round(2) or 'N/A' }}
         </td>
       </tr>
-    </table>    
-    <p class="center"><a href="{{ url_for('index') }}">Analyze another stock</a></p>
+    </table>
+    <p>*5-year average</p>
+
+    <!-- DCF Section -->
+    <div class="section">
+      <h2>DCF Analysis</h2>
+      <form action="{{ url_for('compute_dcf') }}" method="post">
+        <!-- Pass the ticker as hidden input -->
+        <input type="hidden" name="ticker" value="{{ ticker }}">
+        <table>
+          <tr>
+            <th>Parameter</th>
+            <th>Value</th>
+          </tr>
+          <!-- For each DCF parameter, pre-fill from analysis data's dcf_inputs if available,
+               otherwise use a default value -->
+          <tr>
+            <td>Initial FCF</td>
+            <td>
+              <input type="number" step="any" name="initial_fcf" value="{{ dcf_params.initial_fcf if dcf_params else (metrics.dcf_inputs.initial_fcf if metrics.dcf_inputs and metrics.dcf_inputs.initial_fcf is not none else 0) }}" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Growth Rate</td>
+            <td>
+              <input type="number" step="any" name="growth_rate" value="{{ dcf_params.growth_rate }}" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Terminal Multiple</td>
+            <td>
+              <input type="number" step="any" name="terminal_multiple" value="{{ dcf_params.terminal_multiple }}" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Years</td>
+            <td>
+              <input type="number" name="years" value="{{ dcf_params.years if dcf_params else 10 }}" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Cash</td>
+            <td>
+              <input type="number" step="any" name="cash" value="{{ dcf_params.cash if dcf_params else (metrics.dcf_inputs.cash if metrics.dcf_inputs and metrics.dcf_inputs.cash is not none else 0) }}" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Debt</td>
+            <td>
+              <input type="number" step="any" name="debt" value="{{ dcf_params.debt if dcf_params else (metrics.dcf_inputs.debt if metrics.dcf_inputs and metrics.dcf_inputs.debt is not none else 0) }}" required>
+            </td>
+          </tr>
+          <tr>
+            <td>Shares</td>
+            <td>
+              <input type="number" step="any" name="shares" value="{{ dcf_params.shares if dcf_params else (metrics.dcf_inputs.shares if metrics.dcf_inputs and metrics.dcf_inputs.shares is not none else 0) }}" required>
+            </td>
+          </tr>
+        </table>
+        <br>
+        <button type="submit">Compute DCF</button>
+      </form>
+
+      {% if dcf_results %}
+      <h3>DCF Valuation Results</h3>
+      <table>
+        <tr>
+          <th>Discount Rate</th>
+          <th>Share Price</th>
+        </tr>
+        {% for rate, value in dcf_results.items() %}
+          <tr>
+            <td class="center">{{ rate }}</td>
+            <td class="center">{{ value|round(2) }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+
+    <p style="text-align:center;"><a href="{{ url_for('index') }}">Analyze another stock</a></p>
   </div>
 </body>
 </html>

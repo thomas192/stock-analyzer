@@ -1,4 +1,5 @@
 .env
 analysis/
 data/
+dcf/
 venv/
