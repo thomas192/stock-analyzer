@@ -4,77 +4,250 @@
   <meta charset="UTF-8">
   <title>Analysis Result for {{ ticker }}</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 2em; }
-    .container { max-width: 800px; margin: auto; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 8px 12px; border: 1px solid #ddd; }
-    th { background-color: #f4f4f4; text-align: left; }
-    .center { text-align: center; }
-    .section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background-color: #fafafa;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    h1, h2, h3 {
+      margin-top: 0;
+      font-weight: normal;
+    }
+    .key-metrics-container {
+      display: flex;
+      flex-wrap: wrap; /* allow wrapping if viewport is narrow */
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .metric-card {
+      flex: 1 1 calc(33% - 20px); /* roughly 3 cards per row */
+      min-width: 200px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .metric-title {
+      font-size: 0.9em;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .metric-value {
+      font-size: 1.2em;
+      font-weight: bold;
+      padding: 8px;
+      border-radius: 4px;
+      min-height: 2em; /* keep consistent card heights */
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      vertical-align: middle;
+    }
+    th {
+      background-color: #f4f4f4;
+      text-align: left;
+    }
+    .center {
+      text-align: center;
+    }
+    .section {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ccc;
+    }
+    /* Simple green highlight if logic is satisfied */
+    .highlight-green {
+      background-color: lightgreen !important;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Analysis for {{ ticker }}</h1>
+
+    <!-- Key Metrics Section -->
+    <h2>Key Metrics</h2>
+    <div class="key-metrics-container">
+      <!-- Average Turnover Growth -->
+      <div class="metric-card">
+        <div class="metric-title">Revenue Growth (5Y avg)</div>
+        {% set turn_growth_class = "" %}
+        {% if metrics.avg_turnover_growth is not none and metrics.avg_turnover_growth > 0.1 %}
+          {% set turn_growth_class = "highlight-green" %}
+        {% endif %}
+        <div class="metric-value {{ turn_growth_class }}">
+          {{ metrics.avg_turnover_growth is not none 
+             and (metrics.avg_turnover_growth * 100)|round(2) ~ '%' 
+             or 'N/A' }}
+        </div>
+      </div>
+
+      <!-- Average FCF Growth -->
+      <div class="metric-card">
+        <div class="metric-title">FCF Growth (5Y avg)</div>
+        {% set fcf_growth_class = "" %}
+        {% if metrics.avg_FCF_growth is not none and metrics.avg_FCF_growth > 0.1 %}
+          {% set fcf_growth_class = "highlight-green" %}
+        {% endif %}
+        <div class="metric-value {{ fcf_growth_class }}">
+          {{ metrics.avg_FCF_growth is not none 
+             and (metrics.avg_FCF_growth * 100)|round(2) ~ '%' 
+             or 'N/A' }}
+        </div>
+      </div>
+
+      <!-- ROCE Using FCF -->
+      <div class="metric-card">
+        <div class="metric-title">ROCE (w/ FCF, 5Y avg)</div>
+        {% set roce_class = "" %}
+        {% if metrics.avg_ROCE_using_FCF is not none and metrics.avg_ROCE_using_FCF > 0.15 %}
+          {% set roce_class = "highlight-green" %}
+        {% endif %}
+        <div class="metric-value {{ roce_class }}">
+          {{ metrics.avg_ROCE_using_FCF is not none 
+             and (metrics.avg_ROCE_using_FCF * 100)|round(2) ~ '%' 
+             or 'N/A' }}
+        </div>
+      </div>
+
+      <!-- Net Debt/FCF -->
+      <div class="metric-card">
+        <div class="metric-title">Net Debt/FCF</div>
+        {% set nd_to_fcf_class = "" %}
+        {% if metrics.latest_net_debt_to_FCF is not none and metrics.latest_net_debt_to_FCF < 3 %}
+          {% set nd_to_fcf_class = "highlight-green" %}
+        {% endif %}
+        <div class="metric-value {{ nd_to_fcf_class }}">
+          {{ metrics.latest_net_debt_to_FCF is not none 
+             and metrics.latest_net_debt_to_FCF|round(2) 
+             or 'N/A' }}
+        </div>
+      </div>
+
+      <!-- Share Number Increase -->
+      <div class="metric-card">
+        <div class="metric-title">Share Number Increase (5Y avg)</div>
+        {% set stock_increase_class = "" %}
+        {% if metrics.avg_stock_increase is not none and metrics.avg_stock_increase <= 0 %}
+          {% set stock_increase_class = "highlight-green" %}
+        {% endif %}
+        <div class="metric-value {{ stock_increase_class }}">
+          {{ metrics.avg_stock_increase is not none 
+             and (metrics.avg_stock_increase * 100)|round(2) ~ '%' 
+             or 'N/A' }}
+        </div>
+      </div>
+
+      <!-- Average FCF Margin -->
+      <div class="metric-card">
+        <div class="metric-title">FCF Margin (5Y avg)</div>
+        {% set fcf_margin_class = "" %}
+        {% if metrics.avg_FCF_margin is not none and metrics.avg_FCF_margin > 0.1 %}
+          {% set fcf_margin_class = "highlight-green" %}
+        {% endif %}
+        <div class="metric-value {{ fcf_margin_class }}">
+          {{ metrics.avg_FCF_margin is not none 
+             and (metrics.avg_FCF_margin * 100)|round(2) ~ '%' 
+             or 'N/A' }}
+        </div>
+      </div>
+    </div> <!-- /key-metrics-container -->
+
+
+    <!-- Additional Metrics Section -->
+    <h2>Additional Metrics</h2>
     <table>
       <tr>
         <th>Metric</th>
         <th>Value</th>
       </tr>
+      <!-- Stock Price -->
       <tr>
-        <td>Revenue Growth*</td>
-        <td class="center" {% if metrics.avg_turnover_growth is not none and metrics.avg_turnover_growth > 0.1 %} style="background-color: lightgreen;" {% endif %}>
-          {{ metrics.avg_turnover_growth is not none and (metrics.avg_turnover_growth * 100)|round(2) ~ '%' or 'N/A' }}
-        </td>
-      </tr>
-      <tr>
-        <td>FCF Growth*</td>
-        <td class="center" {% if metrics.avg_FCF_growth is not none and metrics.avg_FCF_growth > 0.1 %} style="background-color: lightgreen;" {% endif %}>
-          {{ metrics.avg_FCF_growth is not none and (metrics.avg_FCF_growth * 100)|round(2) ~ '%' or 'N/A' }}
-        </td>
-      </tr>
-      <tr>
-        <td>ROCE with FCF*</td>
-        <td class="center" {% if metrics.avg_ROCE_using_FCF is not none and metrics.avg_ROCE_using_FCF > 0.15 %} style="background-color: lightgreen;" {% endif %}>
-          {{ metrics.avg_ROCE_using_FCF is not none and (metrics.avg_ROCE_using_FCF * 100)|round(2) ~ '%' or 'N/A' }}
-        </td>
-      </tr>
-      <tr>
-        <td>Net Debt/FCF</td>
-        <td class="center" {% if metrics.latest_net_debt_to_FCF is not none and metrics.latest_net_debt_to_FCF < 3 %} style="background-color: lightgreen;" {% endif %}>
-          {{ metrics.latest_net_debt_to_FCF is not none and metrics.latest_net_debt_to_FCF|round(2) or 'N/A' }}
-        </td>
-      </tr>
-      <tr>
-        <td>Share Number Increase*</td>
-        <td class="center" {% if metrics.avg_stock_increase is not none and metrics.avg_stock_increase <= 0 %} style="background-color: lightgreen;" {% endif %}>
-          {{ metrics.avg_stock_increase is not none and (metrics.avg_stock_increase * 100)|round(2) ~ '%' or 'N/A' }}
-        </td>
-      </tr>
-      <tr>
-        <td>FCF Margin*</td>
-        <td class="center" {% if metrics.avg_FCF_margin is not none and metrics.avg_FCF_margin > 0.1 %} style="background-color: lightgreen;" {% endif %}>
-          {{ metrics.avg_FCF_margin is not none and (metrics.avg_FCF_margin * 100)|round(2) ~ '%' or 'N/A' }}
-        </td>
-      </tr>
-      <tr>
-        <td>PER*</td>
+        <td>Stock Price</td>
         <td class="center">
-          {{ metrics.average_per is not none and metrics.average_per|round(2) or 'N/A' }}
+          {{ metrics.latest_price is not none and metrics.latest_price|round(2) or 'N/A' }}
         </td>
       </tr>
+      <!-- TTM PER -->
       <tr>
         <td>PER TTM</td>
-        <td class="center" {% if metrics.ttm_per is not none and metrics.average_per is not none and metrics.ttm_per < metrics.average_per %} style="background-color: lightgreen;" {% endif %}>
+        {% set ttm_per_class = "" %}
+        {% if metrics.ttm_per is not none and metrics.average_per is not none and metrics.ttm_per < metrics.average_per %}
+          {% set ttm_per_class = "highlight-green" %}
+        {% endif %}
+        <td class="center {{ ttm_per_class }}">
           {{ metrics.ttm_per is not none and metrics.ttm_per|round(2) or 'N/A' }}
         </td>
       </tr>
+      <!-- Latest PER -->
       <tr>
         <td>PER (latest quarter)</td>
         <td class="center">
           {{ metrics.latest_per is not none and metrics.latest_per|round(2) or 'N/A' }}
         </td>
       </tr>
+      <!-- Average PER (5Y or 10Y) -->
+      <tr>
+        <td>Average PER (5Y)</td>
+        <td class="center">
+          {{ metrics.average_pe_5y is not none and metrics.average_pe_5y|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <tr>
+        <td>Average PER (10Y)</td>
+        <td class="center">
+          {{ metrics.average_pe_10y is not none and metrics.average_pe_10y|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <!-- Average PFCF -->
+      <tr>
+        <td>Average PFCF (5Y)</td>
+        <td class="center">
+          {{ metrics.average_pfcf_5y is not none and metrics.average_pfcf_5y|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <tr>
+        <td>Average PFCF (10Y)</td>
+        <td class="center">
+          {{ metrics.average_pfcf_10y is not none and metrics.average_pfcf_10y|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <!-- EPS Data -->
+      <tr>
+        <td>Latest Quarterly EPS</td>
+        <td class="center">
+          {{ metrics.latest_quarterly_eps is not none and metrics.latest_quarterly_eps|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <tr>
+        <td>TTM EPS</td>
+        <td class="center">
+          {{ metrics.ttm_eps is not none and metrics.ttm_eps|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <tr>
+        <td>TTM FCF/Share</td>
+        <td class="center">
+          {{ metrics.ttm_fcf_ps is not none and metrics.ttm_fcf_ps|round(2) or 'N/A' }}
+        </td>
+      </tr>
+      <!-- Fiscal / Analysis Dates -->
       <tr>
         <td>Fiscal Date Ending</td>
         <td class="center">
@@ -82,13 +255,13 @@
         </td>
       </tr>
       <tr>
-        <td>Stock Price</td>
+        <td>Analysis Date</td>
         <td class="center">
-          {{ metrics.latest_price is not none and metrics.latest_price|round(2) or 'N/A' }}
+          {{ metrics.analysis_date or 'N/A' }}
         </td>
       </tr>
     </table>
-    <p>*5-year average</p>
+
 
     <!-- DCF Section -->
     <div class="section">
@@ -102,47 +275,73 @@
             <th>Value</th>
           </tr>
           <!-- For each DCF parameter, pre-fill from analysis data's dcf_inputs if available,
-               otherwise use a default value -->
+               or from any previously computed dcf_params, otherwise default to 0 -->
           <tr>
             <td>Initial FCF</td>
             <td>
-              <input type="number" step="any" name="initial_fcf" value="{{ dcf_params.initial_fcf if dcf_params else (metrics.dcf_inputs.initial_fcf if metrics.dcf_inputs and metrics.dcf_inputs.initial_fcf is not none else 0) }}" required>
+              <input type="number" step="any" name="initial_fcf"
+                     value="{{ dcf_params.initial_fcf if dcf_params 
+                               else (metrics.dcf_inputs.initial_fcf 
+                                     if metrics.dcf_inputs and metrics.dcf_inputs.initial_fcf is not none 
+                                     else 0) }}"
+                     required>
             </td>
           </tr>
           <tr>
             <td>Growth Rate</td>
             <td>
-              <input type="number" step="any" name="growth_rate" value="{{ dcf_params.growth_rate }}" required>
+              <input type="number" step="any" name="growth_rate"
+                     value="{{ dcf_params.growth_rate if dcf_params else '' }}"
+                     required>
             </td>
           </tr>
           <tr>
             <td>Terminal Multiple</td>
             <td>
-              <input type="number" step="any" name="terminal_multiple" value="{{ dcf_params.terminal_multiple }}" required>
+              <input type="number" step="any" name="terminal_multiple"
+                     value="{{ dcf_params.terminal_multiple if dcf_params else '' }}"
+                     required>
             </td>
           </tr>
           <tr>
             <td>Years</td>
             <td>
-              <input type="number" name="years" value="{{ dcf_params.years if dcf_params else 10 }}" required>
+              <input type="number" name="years"
+                     value="{{ dcf_params.years if dcf_params else 10 }}"
+                     required>
             </td>
           </tr>
           <tr>
             <td>Cash</td>
             <td>
-              <input type="number" step="any" name="cash" value="{{ dcf_params.cash if dcf_params else (metrics.dcf_inputs.cash if metrics.dcf_inputs and metrics.dcf_inputs.cash is not none else 0) }}" required>
+              <input type="number" step="any" name="cash"
+                     value="{{ dcf_params.cash if dcf_params 
+                               else (metrics.dcf_inputs.cash 
+                                     if metrics.dcf_inputs and metrics.dcf_inputs.cash is not none 
+                                     else 0) }}"
+                     required>
             </td>
           </tr>
           <tr>
             <td>Debt</td>
             <td>
-              <input type="number" step="any" name="debt" value="{{ dcf_params.debt if dcf_params else (metrics.dcf_inputs.debt if metrics.dcf_inputs and metrics.dcf_inputs.debt is not none else 0) }}" required>
+              <input type="number" step="any" name="debt"
+                     value="{{ dcf_params.debt if dcf_params 
+                               else (metrics.dcf_inputs.debt 
+                                     if metrics.dcf_inputs and metrics.dcf_inputs.debt is not none 
+                                     else 0) }}"
+                     required>
             </td>
           </tr>
           <tr>
             <td>Shares</td>
             <td>
-              <input type="number" step="any" name="shares" value="{{ dcf_params.shares if dcf_params else (metrics.dcf_inputs.shares if metrics.dcf_inputs and metrics.dcf_inputs.shares is not none else 0) }}" required>
+              <input type="number" step="any" name="shares"
+                     value="{{ dcf_params.shares if dcf_params 
+                               else (metrics.dcf_inputs.shares 
+                                     if metrics.dcf_inputs and metrics.dcf_inputs.shares is not none 
+                                     else 0) }}"
+                     required>
             </td>
           </tr>
         </table>
@@ -150,6 +349,7 @@
         <button type="submit">Compute DCF</button>
       </form>
 
+      
       {% if dcf_results %}
       <h3>DCF Valuation Results</h3>
       <table>
@@ -167,7 +367,9 @@
       {% endif %}
     </div>
 
-    <p style="text-align:center;"><a href="{{ url_for('index') }}">Analyze another stock</a></p>
-  </div>
+    <p style="text-align:center; margin-top: 20px;">
+      <a href="{{ url_for('index') }}">Analyze another stock</a>
+    </p>
+  </div> <!-- /container -->
 </body>
 </html>
