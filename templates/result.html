@@ -277,12 +277,12 @@
           <!-- For each DCF parameter, pre-fill from analysis data's dcf_inputs if available,
                or from any previously computed dcf_params, otherwise default to 0 -->
           <tr>
-            <td>Initial FCF</td>
+            <td>FCF per Share</td>
             <td>
-              <input type="number" step="any" name="initial_fcf"
-                     value="{{ dcf_params.initial_fcf if dcf_params 
-                               else (metrics.dcf_inputs.initial_fcf 
-                                     if metrics.dcf_inputs and metrics.dcf_inputs.initial_fcf is not none 
+              <input type="number" step="any" name="fcf_ps"
+                     value="{{ dcf_params.fcf_ps if dcf_params 
+                               else (metrics.dcf_inputs.fcf_ps 
+                                     if metrics.dcf_inputs and metrics.dcf_inputs.fcf_ps is not none 
                                      else 0) }}"
                      required>
             </td>

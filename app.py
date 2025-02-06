@@ -40,7 +40,7 @@ def load_analysis_data(ticker: str) -> dict:
     return {}
 
 
-def run_dcf(ticker: str, initial_fcf: float, growth_rate: float,
+def run_dcf(ticker: str, fcf_ps: float, growth_rate: float,
             terminal_multiple: float, years: int, cash: float,
             debt: float, shares: float) -> bool:
     """
@@ -53,7 +53,7 @@ def run_dcf(ticker: str, initial_fcf: float, growth_rate: float,
             None,
             parameters={
                 'ticker': ticker,
-                'initial_fcf': initial_fcf,
+                'fcf_ps': fcf_ps,
                 'growth_rate': growth_rate,
                 'terminal_multiple': terminal_multiple,
                 'years': years,
@@ -124,7 +124,7 @@ def compute_dcf():
     # Retrieve DCF parameters from the form.
     try:
         # Use float() conversion and default to 0 if a field is missing or invalid.
-        initial_fcf = float(request.form.get('initial_fcf'))
+        fcf_ps = float(request.form.get('fcf_ps'))
         growth_rate = float(request.form.get('growth_rate'))
         terminal_multiple = float(request.form.get('terminal_multiple'))
         years = int(request.form.get('years'))
@@ -136,7 +136,7 @@ def compute_dcf():
         return redirect(url_for('index'))
 
     # Run the DCF notebook.
-    if not run_dcf(ticker, initial_fcf, growth_rate, terminal_multiple, years, cash, debt, shares):
+    if not run_dcf(ticker, fcf_ps, growth_rate, terminal_multiple, years, cash, debt, shares):
         flash('Error computing DCF. Please try again.')
         return redirect(url_for('index'))
 
@@ -146,7 +146,7 @@ def compute_dcf():
 
     # Build a dictionary of parameters to pre-fill the form.
     dcf_params = {
-        'initial_fcf': initial_fcf,
+        'fcf_ps': fcf_ps,
         'growth_rate': growth_rate,
         'terminal_multiple': terminal_multiple,
         'years': years,
