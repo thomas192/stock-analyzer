@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <title>Stock Analysis</title>
-  <!-- Use the common CSS -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
   <div class="container">
-    <h1>Analyze a Stock</h1>
+    <header>
+      <h1>Stock Analysis</h1>
+    </header>
+
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <ul>
+        <ul class="flash-messages">
           {% for message in messages %}
             <li class="error">{{ message }}</li>
           {% endfor %}
         </ul>
       {% endif %}
     {% endwith %}
-    <form method="post">
-      <label for="ticker">Ticker:</label>
-      <input type="text" id="ticker" name="ticker" placeholder="e.g., AAPL" required>
-      <br><br>
+
+    <form class="ticker-form" method="post">
+      <input type="text" name="ticker" placeholder="Enter Ticker (e.g., AAPL)" required>
       <button type="submit">Analyze</button>
     </form>
   </div>
