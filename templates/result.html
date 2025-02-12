@@ -3,79 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Analysis Result for {{ ticker }}</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2em;
-      background-color: #fafafa;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-    h1, h2, h3 {
-      margin-top: 0;
-      font-weight: normal;
-    }
-    .key-metrics-container {
-      display: flex;
-      flex-wrap: wrap; /* allow wrapping if viewport is narrow */
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-    .metric-card {
-      flex: 1 1 calc(33% - 20px); /* roughly 3 cards per row */
-      min-width: 200px;
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      padding: 15px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    .metric-title {
-      font-size: 0.9em;
-      color: #555;
-      margin-bottom: 5px;
-    }
-    .metric-value {
-      font-size: 1.2em;
-      font-weight: bold;
-      padding: 8px;
-      border-radius: 4px;
-      min-height: 2em; /* keep consistent card heights */
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      vertical-align: middle;
-    }
-    th {
-      background-color: #f4f4f4;
-      text-align: left;
-    }
-    .center {
-      text-align: center;
-    }
-    .section {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid #ccc;
-    }
-    /* Simple green highlight if logic is satisfied */
-    .highlight-green {
-      background-color: lightgreen !important;
-    }
-  </style>
+  <!-- Use the common CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Include Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
@@ -84,8 +15,11 @@
     <!-- Key Metrics Section -->
     <h2>Key Metrics</h2>
     <div class="key-metrics-container">
-      <!-- Average Turnover Growth -->
-      <div class="metric-card">
+      <!-- Revenue Growth (avg_turnover_growth) -->
+      <div class="metric-card clickable-metric" 
+           data-metric="turnover" 
+           data-chart-type="bar" 
+           data-title="Turnover">
         <div class="metric-title">Revenue Growth (5Y avg)</div>
         {% set turn_growth_class = "" %}
         {% if metrics.avg_turnover_growth is not none and metrics.avg_turnover_growth > 0.1 %}
@@ -98,8 +32,11 @@
         </div>
       </div>
 
-      <!-- Average FCF Growth -->
-      <div class="metric-card">
+      <!-- FCF Growth (avg_FCF_growth) -->
+      <div class="metric-card clickable-metric" 
+           data-metric="FCF" 
+           data-chart-type="bar" 
+           data-title="FCF">
         <div class="metric-title">FCF Growth (5Y avg)</div>
         {% set fcf_growth_class = "" %}
         {% if metrics.avg_FCF_growth is not none and metrics.avg_FCF_growth > 0.1 %}
@@ -112,8 +49,11 @@
         </div>
       </div>
 
-      <!-- ROCE Using FCF -->
-      <div class="metric-card">
+      <!-- ROCE Using FCF (avg_ROCE_using_FCF) -->
+      <div class="metric-card clickable-metric" 
+           data-metric="ROCE_using_FCF" 
+           data-chart-type="line" 
+           data-title="ROCE using FCF">
         <div class="metric-title">ROCE (w/ FCF, 5Y avg)</div>
         {% set roce_class = "" %}
         {% if metrics.avg_ROCE_using_FCF is not none and metrics.avg_ROCE_using_FCF > 0.15 %}
@@ -126,7 +66,7 @@
         </div>
       </div>
 
-      <!-- Net Debt/FCF -->
+      <!-- Net Debt/FCF (non-clickable) -->
       <div class="metric-card">
         <div class="metric-title">Net Debt/FCF</div>
         {% set nd_to_fcf_class = "" %}
@@ -135,13 +75,16 @@
         {% endif %}
         <div class="metric-value {{ nd_to_fcf_class }}">
           {{ metrics.latest_net_debt_to_FCF is not none 
-             and metrics.latest_net_debt_to_FCF|round(2) 
+             and metrics.latest_net_debt_to_FCF|round(2)
              or 'N/A' }}
         </div>
       </div>
 
-      <!-- Share Number Increase -->
-      <div class="metric-card">
+      <!-- Share Number Increase (avg_stock_increase) -->
+      <div class="metric-card clickable-metric" 
+           data-metric="shares" 
+           data-chart-type="bar" 
+           data-title="Shares">
         <div class="metric-title">Share Number Increase (5Y avg)</div>
         {% set stock_increase_class = "" %}
         {% if metrics.avg_stock_increase is not none and metrics.avg_stock_increase <= 0 %}
@@ -154,8 +97,11 @@
         </div>
       </div>
 
-      <!-- Average FCF Margin -->
-      <div class="metric-card">
+      <!-- FCF Margin (avg_FCF_margin) -->
+      <div class="metric-card clickable-metric" 
+           data-metric="FCF_margin" 
+           data-chart-type="line" 
+           data-title="FCF Margin">
         <div class="metric-title">FCF Margin (5Y avg)</div>
         {% set fcf_margin_class = "" %}
         {% if metrics.avg_FCF_margin is not none and metrics.avg_FCF_margin > 0.1 %}
@@ -168,7 +114,6 @@
         </div>
       </div>
     </div> <!-- /key-metrics-container -->
-
 
     <!-- Additional Metrics Section -->
     <h2>Additional Metrics</h2>
@@ -202,7 +147,7 @@
           {{ metrics.latest_per is not none and metrics.latest_per|round(2) or 'N/A' }}
         </td>
       </tr>
-      <!-- Average PER (5Y or 10Y) -->
+      <!-- Average PER (5Y and 10Y) -->
       <tr>
         <td>Average PER (5Y)</td>
         <td class="center">
@@ -247,6 +192,13 @@
           {{ metrics.ttm_fcf_ps is not none and metrics.ttm_fcf_ps|round(2) or 'N/A' }}
         </td>
       </tr>
+      <!-- New: TTM PFCF -->
+      <tr>
+        <td>TTM PFCF</td>
+        <td class="center">
+          {{ metrics.ttm_pfcf is not none and metrics.ttm_pfcf|round(2) or 'N/A' }}
+        </td>
+      </tr>
       <!-- Fiscal / Analysis Dates -->
       <tr>
         <td>Fiscal Date Ending</td>
@@ -262,7 +214,6 @@
       </tr>
     </table>
 
-
     <!-- DCF Section -->
     <div class="section">
       <h2>DCF Analysis</h2>
@@ -274,8 +225,6 @@
             <th>Parameter</th>
             <th>Value</th>
           </tr>
-          <!-- For each DCF parameter, pre-fill from analysis data's dcf_inputs if available,
-               or from any previously computed dcf_params, otherwise default to 0 -->
           <tr>
             <td>FCF per Share</td>
             <td>
@@ -349,7 +298,6 @@
         <button type="submit">Compute DCF</button>
       </form>
 
-      
       {% if dcf_results %}
       <h3>DCF Valuation Results</h3>
       <table>
@@ -371,5 +319,105 @@
       <a href="{{ url_for('index') }}">Analyze another stock</a>
     </p>
   </div> <!-- /container -->
+
+  <!-- Modal for Chart Popup -->
+  <div id="chartModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3 id="chartTitle"></h3>
+      <canvas id="metricChart"></canvas>
+    </div>
+  </div>
+
+  <!-- JavaScript for modal and chart handling -->
+  <script>
+    // Get historical data from the metrics JSON (using the "safe" filter)
+    const historicalData = {{ metrics.historical_metrics | tojson | safe }};
+    const years = historicalData.map(item => item.year);
+
+    let metricChart;
+
+    // Function to create a chart in the modal popup with minimalist styling
+    function createChart(chartType, metricField, chartTitle) {
+      const ctx = document.getElementById('metricChart').getContext('2d');
+      const dataValues = historicalData.map(item => item[metricField]);
+      
+      // Destroy previous chart instance if exists
+      if (metricChart) {
+        metricChart.destroy();
+      }
+      
+      metricChart = new Chart(ctx, {
+        type: chartType,
+        data: {
+          labels: years,
+          datasets: [{
+            label: chartTitle,
+            data: dataValues,
+            backgroundColor: chartType === 'bar' ? 'rgba(54, 162, 235, 0.6)' : 'rgba(75, 192, 192, 0.6)',
+            borderColor: chartType === 'bar' ? 'rgba(54, 162, 235, 1)' : 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            borderRadius: chartType === 'bar' ? 4 : 0,
+            fill: false,
+            tension: chartType === 'line' ? 0.1 : 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#333',
+              titleFont: { size: 14 },
+              bodyFont: { size: 12 }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false, drawBorder: false },
+              ticks: { font: { family: 'Arial, sans-serif', size: 12 } }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { display: false, drawBorder: false },
+              ticks: { font: { family: 'Arial, sans-serif', size: 12 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Get modal elements
+    const modal = document.getElementById('chartModal');
+    const chartTitleElem = document.getElementById('chartTitle');
+    const closeModal = document.querySelector('.close-modal');
+
+    // Close modal when clicking the close button
+    closeModal.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    // Close modal if clicking outside the modal content
+    window.addEventListener('click', (event) => {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Add click listeners to all clickable metric cards
+    document.querySelectorAll('.clickable-metric').forEach(function(card) {
+      card.addEventListener('click', function() {
+        const metricField = this.getAttribute('data-metric');
+        const chartType = this.getAttribute('data-chart-type');
+        const title = this.getAttribute('data-title');
+        
+        chartTitleElem.textContent = title;
+        createChart(chartType, metricField, title);
+        
+        // Show the modal popup
+        modal.style.display = 'block';
+      });
+    });
+  </script>
 </body>
 </html>
