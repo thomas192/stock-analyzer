@@ -11,6 +11,11 @@
 <body>
   <div class="container">
     <h1>Analysis for {{ ticker }}</h1>
+    <!-- Reset Cache Button -->
+    <form action="{{ url_for('reset_cache') }}" method="post" style="margin-bottom: 20px;">
+      <input type="hidden" name="ticker" value="{{ ticker }}">
+      <button type="submit">Reset Cache</button>
+    </form>
 
     <!-- Key Metrics Section -->
     <h2>Key Metrics</h2>
@@ -297,6 +302,9 @@
         <br>
         <button type="submit">Compute DCF</button>
       </form>
+
+      <!-- Spacer to add extra vertical space between the Compute DCF form and the results -->
+      <div style="margin-top: 20px;"></div>
 
       {% if dcf_results %}
       <h3>DCF Valuation Results</h3>
