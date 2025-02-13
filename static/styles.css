@@ -262,7 +262,7 @@ header p {
 }
 
 /* Chart Styles */
-#chartTitle {
+.chart-title {
   text-align: center;
   margin-bottom: 10px;
 }

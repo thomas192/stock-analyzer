@@ -177,17 +177,16 @@ def index():
 @app.route('/compute_dcf', methods=['POST'])
 def compute_dcf():
     """
-    Route to run the DCF notebook with parameters supplied via the form on the result page.
-    After executing the DCF analysis, the DCF results are loaded and the result page is re-rendered.
+    AJAX-only endpoint to run the DCF notebook with form-supplied parameters.
+    Returns a JSON object containing:
+      - rendered HTML for the DCF section (which still includes the form)
+      - dcf_results JSON data for initializing the Chart.js chart.
     """
     ticker = request.form.get('ticker', '').upper().strip()
     if not ticker:
-        flash('Ticker symbol missing for DCF computation.')
-        return redirect(url_for('index'))
+        return {"error": "Ticker symbol missing for DCF computation."}, 400
 
-    # Retrieve DCF parameters from the form.
     try:
-        # Use float() conversion and default to 0 if a field is missing or invalid.
         fcf_ps = float(request.form.get('fcf_ps'))
         growth_rate = float(request.form.get('growth_rate'))
         terminal_multiple = float(request.form.get('terminal_multiple'))
@@ -196,20 +195,13 @@ def compute_dcf():
         debt = float(request.form.get('debt'))
         shares = float(request.form.get('shares'))
     except Exception as e:
-        flash(f'Error parsing DCF parameters: {e}')
-        return redirect(url_for('index'))
+        return {"error": f"Error parsing DCF parameters: {e}"}, 400
 
-    # Run the DCF notebook.
     if not run_dcf(ticker, fcf_ps, growth_rate, terminal_multiple, years, cash, debt, shares):
-        flash('Error computing DCF. Please try again.')
-        return redirect(url_for('index'))
+        return {"error": "Error computing DCF. Please try again."}, 500
 
-    # Load data to display.
     metrics = load_analysis_data(ticker)
     dcf_results = load_dcf_data(ticker)
-    transcript_data = load_transcript_data(ticker)
-
-    # Build a dictionary of parameters to pre-fill the form.
     dcf_params = {
         'fcf_ps': fcf_ps,
         'growth_rate': growth_rate,
@@ -220,8 +212,13 @@ def compute_dcf():
         'shares': shares,
     }
 
-    return render_template('result.html', ticker=ticker, metrics=metrics, 
-                       dcf_results=dcf_results, dcf_params=dcf_params, transcript_data=transcript_data)
+    # Render the updated DCF partial (which includes both the form and, if available, results)
+    dcf_html = render_template('partials/_dcf.html',
+                               ticker=ticker,
+                               metrics=metrics,
+                               dcf_results=dcf_results,
+                               dcf_params=dcf_params)
+    return {"dcf_html": dcf_html, "dcf_results": dcf_results}
 
 @app.route('/reset_cache', methods=['POST'])
 def reset_cache():

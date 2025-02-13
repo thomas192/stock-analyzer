@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Stock Analysis{% endblock %}</title>
@@ -8,7 +9,13 @@
   <!-- Include Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   {% block content %}{% endblock %}
+  <!-- Spinner (hidden by default) -->
+  <div id="loading" style="display: none;">
+    <div class="spinner"></div>
+  </div>
 </body>
+
 </html>
