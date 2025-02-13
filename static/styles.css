@@ -169,6 +169,7 @@ header p {
 
 .btn {
   display: inline-block;
+  height: 100%;
   padding: 8px 15px;
   border-radius: 4px;
   text-decoration: none;
