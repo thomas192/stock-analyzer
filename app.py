@@ -1,6 +1,8 @@
 import os
 import json
+import glob
 import papermill as pm
+from datetime import datetime
 from flask import Flask, request, render_template, redirect, url_for, flash
 
 app = Flask(__name__)
@@ -9,7 +11,8 @@ app.secret_key = 'secret_key'  # Needed for flash messages
 # Directories where JSON outputs are stored
 ANALYSIS_FOLDER = os.path.join(os.getcwd(), 'analysis')
 DCF_FOLDER = os.path.join(os.getcwd(), 'dcf')
-DATA_FOLDER = os.path.join(os.getcwd(), 'data')  # Folder containing balance sheet, cash flow, income statement files
+DATA_FOLDER = os.path.join(os.getcwd(), 'data')
+TRANSCRIPTS_FOLDER = os.path.join(os.getcwd(), 'transcripts')
 
 def run_analysis(ticker: str) -> bool:
     """
@@ -76,6 +79,44 @@ def load_dcf_data(ticker: str) -> dict:
             return json.load(f)
     return {}
 
+def run_transcripts(ticker: str) -> bool:
+    """
+    Runs the transcripts notebook using Papermill for the given ticker.
+    The notebook expects a parameter 'ticker_list'.
+    """
+    try:
+        pm.execute_notebook(
+            'transcripts.ipynb',
+            None,
+            parameters={'ticker_list': [ticker]}
+        )
+        return True
+    except Exception as e:
+        print(f"Error running transcripts notebook: {e}")
+        return False
+
+def load_transcript_data(ticker: str) -> dict:
+    """
+    Searches the transcripts folder for files with the naming convention:
+      {ticker}_YYYY-MM-DD_transcript.json
+    Loads and returns a list of transcript dictionaries, sorted by date (newest first).
+    """
+    pattern = os.path.join(TRANSCRIPTS_FOLDER, f"{ticker}_*_transcript.json")
+    files = glob.glob(pattern)
+    transcript_list = []
+    for filename in files:
+        try:
+            with open(filename, 'r') as f:
+                data = json.load(f)
+                # Ensure a date key exists; otherwise, skip this file.
+                if "date" in data:
+                    transcript_list.append(data)
+        except Exception as e:
+            print(f"Error loading transcript file {filename}: {e}")
+    # Sort transcripts by date descending
+    transcript_list.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
+    return transcript_list
+
 def delete_cache_files(ticker: str):
     """
     Deletes cached JSON files for the given ticker from the data folder.
@@ -97,9 +138,6 @@ def delete_cache_files(ticker: str):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """
-    Main route: if POST, run analysis notebook; if GET, show the ticker input form.
-    """
     if request.method == 'POST':
         ticker = request.form.get('ticker', '').upper().strip()
         if not ticker:
@@ -117,11 +155,17 @@ def index():
             flash('Analysis data not found. Please try again.')
             return redirect(url_for('index'))
 
-        # Render the results page with the analysis metrics.
-        # (The DCF section is initially empty.)
-        return render_template('result.html', ticker=ticker, metrics=metrics, dcf_results=None, dcf_params=None)
+        # Run transcripts notebook and load transcript data
+        if not run_transcripts(ticker):
+            flash('There was an error running the transcripts analysis.')
+            transcript_data = {}
+        else:
+            transcript_data = load_transcript_data(ticker)
 
-    # GET: show the input form.
+        # Render the result page with analysis, dcf (empty), and transcripts.
+        return render_template('result.html', ticker=ticker, metrics=metrics, 
+                               dcf_results=None, dcf_params=None, transcript_data=transcript_data)
+
     return render_template('index.html')
 
 @app.route('/compute_dcf', methods=['POST'])
@@ -154,9 +198,10 @@ def compute_dcf():
         flash('Error computing DCF. Please try again.')
         return redirect(url_for('index'))
 
-    # Load both the analysis and DCF data.
+    # Load data to display.
     metrics = load_analysis_data(ticker)
     dcf_results = load_dcf_data(ticker)
+    transcript_data = load_transcript_data(ticker)
 
     # Build a dictionary of parameters to pre-fill the form.
     dcf_params = {
@@ -169,7 +214,8 @@ def compute_dcf():
         'shares': shares,
     }
 
-    return render_template('result.html', ticker=ticker, metrics=metrics, dcf_results=dcf_results, dcf_params=dcf_params)
+    return render_template('result.html', ticker=ticker, metrics=metrics, 
+                       dcf_results=dcf_results, dcf_params=dcf_params, transcript_data=transcript_data)
 
 @app.route('/reset_cache', methods=['POST'])
 def reset_cache():

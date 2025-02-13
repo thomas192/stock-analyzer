@@ -1,0 +1,48 @@
+<div id="transcripts-tab" class="tabcontent" style="display: none;">
+  <section class="transcripts-section">
+    <h2>Transcripts</h2>
+    {% if transcript_data and transcript_data|length > 0 %}
+      <label for="transcript-select">Select transcript:</label>
+      <select id="transcript-select">
+        {% for transcript in transcript_data %}
+          <option value="{{ loop.index0 }}">{{ transcript.date }}</option>
+        {% endfor %}
+      </select>
+      
+      <!-- Container to display the selected transcript -->
+      <div id="transcript-content">
+        {% set first_transcript = transcript_data[0] %}
+        <p><strong>Date:</strong> {{ first_transcript.date }}</p>
+        <div class="transcript">
+          {% for entry in first_transcript.transcript %}
+            <p><strong>{{ entry.speaker }}:</strong> {{ entry.text }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% else %}
+      <p>No transcript data available.</p>
+    {% endif %}
+  </section>
+</div>
+
+<!-- JavaScript to update transcript content on selection -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const transcriptSelect = document.getElementById('transcript-select');
+    if (transcriptSelect) {
+      transcriptSelect.addEventListener('change', function() {
+        // Get the full transcript data passed from Flask as a JSON object.
+        const transcripts = {{ transcript_data|tojson }};
+        const index = this.value;
+        const selected = transcripts[index];
+        let html = '<p><strong>Date:</strong> ' + selected.date + '</p>';
+        html += '<div class="transcript">';
+        selected.transcript.forEach(function(entry) {
+          html += '<p><strong>' + entry.speaker + ':</strong> ' + entry.text + '</p>';
+        });
+        html += '</div>';
+        document.getElementById('transcript-content').innerHTML = html;
+      });
+    }
+  });
+</script>

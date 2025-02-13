@@ -1,0 +1,131 @@
+<div id="metrics-tab" class="tabcontent" style="display: block;">
+    <!-- Key Metrics Section -->
+    <section class="metrics">
+        <h2>Key Metrics</h2>
+        <div class="cards">
+        <!-- Card 1: Revenue Growth -->
+        <div class="card clickable {% if metrics.avg_turnover_growth is not none and metrics.avg_turnover_growth > 0.1 %}highlight-green{% endif %}" 
+            data-metric="turnover" 
+            data-chart-type="bar" 
+            data-title="Revenue Growth (5Y)">
+            <h3>Revenue Growth (5Y avg)</h3>
+            <p>
+            {{ metrics.avg_turnover_growth is not none and (metrics.avg_turnover_growth * 100)|round(2) ~ '%' or 'N/A' }}
+            </p>
+        </div>
+        <!-- Card 2: FCF Growth -->
+        <div class="card clickable {% if metrics.avg_FCF_growth is not none and metrics.avg_FCF_growth > 0.1 %}highlight-green{% endif %}" 
+            data-metric="FCF" 
+            data-chart-type="bar" 
+            data-title="FCF Growth (5Y)">
+            <h3>FCF Growth (5Y avg)</h3>
+            <p>
+            {{ metrics.avg_FCF_growth is not none and (metrics.avg_FCF_growth * 100)|round(2) ~ '%' or 'N/A' }}
+            </p>
+        </div>
+        <!-- Card 3: ROCE using FCF -->
+        <div class="card clickable {% if metrics.avg_ROCE_using_FCF is not none and metrics.avg_ROCE_using_FCF > 0.15 %}highlight-green{% endif %}" 
+            data-metric="ROCE_using_FCF" 
+            data-chart-type="line" 
+            data-title="ROCE (w/ FCF, 5Y)">
+            <h3>ROCE (w/ FCF, 5Y avg)</h3>
+            <p>
+            {{ metrics.avg_ROCE_using_FCF is not none and (metrics.avg_ROCE_using_FCF * 100)|round(2) ~ '%' or 'N/A' }}
+            </p>
+        </div>
+        <!-- Card 4: Net Debt/FCF -->
+        <div class="card {% if metrics.latest_net_debt_to_FCF is not none and metrics.latest_net_debt_to_FCF < 3 %}highlight-green{% endif %}">
+            <h3>Net Debt/FCF</h3>
+            <p>
+            {{ metrics.latest_net_debt_to_FCF is not none and metrics.latest_net_debt_to_FCF|round(2) or 'N/A' }}
+            </p>
+        </div>
+        <!-- Card 5: Share Number Increase -->
+        <div class="card clickable {% if metrics.avg_stock_increase is not none and metrics.avg_stock_increase <= 0 %}highlight-green{% endif %}" 
+            data-metric="shares" 
+            data-chart-type="bar" 
+            data-title="Share Increase (5Y)">
+            <h3>Share Number (5Y avg)</h3>
+            <p>
+            {{ metrics.avg_stock_increase is not none and (metrics.avg_stock_increase * 100)|round(2) ~ '%' or 'N/A' }}
+            </p>
+        </div>
+        <!-- Card 6: FCF Margin -->
+        <div class="card clickable {% if metrics.avg_FCF_margin is not none and metrics.avg_FCF_margin > 0.1 %}highlight-green{% endif %}" 
+            data-metric="FCF_margin" 
+            data-chart-type="line" 
+            data-title="FCF Margin (5Y)">
+            <h3>FCF Margin (5Y avg)</h3>
+            <p>
+            {{ metrics.avg_FCF_margin is not none and (metrics.avg_FCF_margin * 100)|round(2) ~ '%' or 'N/A' }}
+            </p>
+        </div>
+        </div>
+    </section>
+
+    <!-- Additional Metrics Section -->
+    <section class="additional-metrics">
+        <h2>Additional Metrics</h2>
+        <table class="metrics-table compact-table">
+        <tr>
+            <th>Metric</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Stock Price</td>
+            <td class="center">{{ metrics.latest_price is not none and metrics.latest_price|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>PER TTM</td>
+            <td class="center {% if metrics.ttm_per is not none and metrics.average_per is not none and metrics.ttm_per < metrics.average_per %}highlight-green{% endif %}">
+            {{ metrics.ttm_per is not none and metrics.ttm_per|round(2) or 'N/A' }}
+            </td>
+        </tr>
+        <tr>
+            <td>PER (latest quarter)</td>
+            <td class="center">{{ metrics.latest_per is not none and metrics.latest_per|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>PER (5Y)</td>
+            <td class="center">{{ metrics.average_pe_5y is not none and metrics.average_pe_5y|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>PER (10Y)</td>
+            <td class="center">{{ metrics.average_pe_10y is not none and metrics.average_pe_10y|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>PFCF TTM</td>
+            <td class="center">{{ metrics.ttm_pfcf is not none and metrics.ttm_pfcf|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>PFCF (5Y)</td>
+            <td class="center">{{ metrics.average_pfcf_5y is not none and metrics.average_pfcf_5y|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>PFCF (10Y)</td>
+            <td class="center">{{ metrics.average_pfcf_10y is not none and metrics.average_pfcf_10y|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>Latest Quarterly EPS</td>
+            <td class="center">{{ metrics.latest_quarterly_eps is not none and metrics.latest_quarterly_eps|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>EPS TTM</td>
+            <td class="center">{{ metrics.ttm_eps is not none and metrics.ttm_eps|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>FCF/Share TTM</td>
+            <td class="center">{{ metrics.ttm_fcf_ps is not none and metrics.ttm_fcf_ps|round(2) or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>Fiscal Date Ending</td>
+            <td class="center">{{ metrics.fiscal_date_ending or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td>Analysis Date</td>
+            <td class="center">{{ metrics.analysis_date or 'N/A' }}</td>
+        </tr>
+        </table>
+    </section>
+  </div>
+  

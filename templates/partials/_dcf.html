@@ -1,0 +1,55 @@
+<div id="dcf-tab" class="tabcontent" style="display: none;">
+    <!-- DCF Analysis Section -->
+    <section class="dcf-section">
+        <h2>DCF Analysis</h2>
+        <form action="{{ url_for('compute_dcf') }}" method="post" class="dcf-form">
+        <input type="hidden" name="ticker" value="{{ ticker }}">
+        <div class="form-row">
+            <label>FCF per Share</label>
+            <input type="number" step="any" name="fcf_ps"
+            value="{{ dcf_params.fcf_ps if dcf_params else (metrics.dcf_inputs.fcf_ps if metrics.dcf_inputs and metrics.dcf_inputs.fcf_ps is not none else 0) }}" required>
+        </div>
+        <div class="form-row">
+            <label>Growth Rate</label>
+            <input type="number" step="any" name="growth_rate"
+            value="{{ dcf_params.growth_rate if dcf_params else '' }}" required>
+        </div>
+        <div class="form-row">
+            <label>Terminal Multiple</label>
+            <input type="number" step="any" name="terminal_multiple"
+            value="{{ dcf_params.terminal_multiple if dcf_params else '' }}" required>
+        </div>
+        <div class="form-row">
+            <label>Years</label>
+            <input type="number" name="years"
+            value="{{ dcf_params.years if dcf_params else 10 }}" required>
+        </div>
+        <div class="form-row">
+            <label>Cash</label>
+            <input type="number" step="any" name="cash"
+            value="{{ dcf_params.cash if dcf_params else (metrics.dcf_inputs.cash if metrics.dcf_inputs and metrics.dcf_inputs.cash is not none else 0) }}" required>
+        </div>
+        <div class="form-row">
+            <label>Debt</label>
+            <input type="number" step="any" name="debt"
+            value="{{ dcf_params.debt if dcf_params else (metrics.dcf_inputs.debt if metrics.dcf_inputs and metrics.dcf_inputs.debt is not none else 0) }}" required>
+        </div>
+        <div class="form-row">
+            <label>Shares</label>
+            <input type="number" step="any" name="shares"
+            value="{{ dcf_params.shares if dcf_params else (metrics.dcf_inputs.shares if metrics.dcf_inputs and metrics.dcf_inputs.shares is not none else 0) }}" required>
+        </div>
+        <div class="form-row">
+            <button type="submit" class="btn primary">Compute DCF</button>
+        </div>
+        </form>
+        {% if dcf_results %}
+        <div class="dcf-results">
+        <h3>DCF Valuation Results</h3>
+        <!-- Canvas for the minimalistic DCF bar chart -->
+        <canvas id="dcfChart"></canvas>
+        </div>
+        {% endif %}
+    </section>
+  </div>
+  
