@@ -2,17 +2,26 @@
   <section class="transcripts-section">
     <h2>Transcripts</h2>
     {% if transcript_data and transcript_data|length > 0 %}
+      <!-- Hidden field for ticker -->
+      <input type="hidden" id="transcript-ticker" value="{{ ticker }}">
+      
       <label for="transcript-select">Select transcript:</label>
       <select id="transcript-select">
         {% for transcript in transcript_data %}
-          <option value="{{ loop.index0 }}">{{ transcript.date }}</option>
+          <option value="{{ loop.index0 }}">Q{{ transcript.quarter }} {{ transcript.year }}</option>
         {% endfor %}
       </select>
+      
+      <!-- Button to generate the AI summary -->
+      <button id="generate-summary" class="btn">Generate AI Summary</button>
+      
+      <!-- Container to display the generated summary above the transcript -->
+      <div id="summary-content"></div>
       
       <!-- Container to display the selected transcript -->
       <div id="transcript-content">
         {% set first_transcript = transcript_data[0] %}
-        <p><strong>Date:</strong> {{ first_transcript.date }}</p>
+        <p><strong>Period:</strong> Q{{ first_transcript.quarter }} {{ first_transcript.year }}</p>
         <div class="transcript">
           {% for entry in first_transcript.transcript %}
             <p><strong>{{ entry.speaker }}:</strong> {{ entry.text }}</p>
@@ -25,24 +34,9 @@
   </section>
 </div>
 
-<!-- JavaScript to update transcript content on selection -->
+<!-- Expose transcript_data as a global JavaScript variable -->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const transcriptSelect = document.getElementById('transcript-select');
-    if (transcriptSelect) {
-      transcriptSelect.addEventListener('change', function() {
-        // Get the full transcript data passed from Flask as a JSON object.
-        const transcripts = {{ transcript_data|tojson }};
-        const index = this.value;
-        const selected = transcripts[index];
-        let html = '<p><strong>Date:</strong> ' + selected.date + '</p>';
-        html += '<div class="transcript">';
-        selected.transcript.forEach(function(entry) {
-          html += '<p><strong>' + entry.speaker + ':</strong> ' + entry.text + '</p>';
-        });
-        html += '</div>';
-        document.getElementById('transcript-content').innerHTML = html;
-      });
-    }
-  });
+  window.transcriptsData = {{ transcript_data|tojson|safe }};
 </script>
+<!-- Include the dedicated JS for transcripts functionality -->
+<script src="{{ url_for('static', filename='js/transcripts.js') }}"></script>

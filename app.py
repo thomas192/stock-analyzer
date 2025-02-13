@@ -96,11 +96,11 @@ def run_transcripts(ticker: str) -> bool:
         print(f"Error running transcripts notebook: {e}")
         return False
 
-def load_transcript_data(ticker: str) -> dict:
+def load_transcript_data(ticker: str) -> list:
     """
     Searches the transcripts folder for files with the naming convention:
-      {ticker}_YYYY-MM-DD_transcript.json
-    Loads and returns a list of transcript dictionaries, sorted by date (newest first).
+      {ticker}_*_transcript.json
+    Loads and returns a list of transcript dictionaries, sorted by year and quarter (newest first).
     """
     pattern = os.path.join(TRANSCRIPTS_FOLDER, f"{ticker}_*_transcript.json")
     files = glob.glob(pattern)
@@ -109,14 +109,42 @@ def load_transcript_data(ticker: str) -> dict:
         try:
             with open(filename, 'r') as f:
                 data = json.load(f)
-                # Ensure a date key exists; otherwise, skip this file.
-                if "date" in data:
+                # Ensure both year and quarter keys exist; otherwise, skip this file.
+                if "year" in data and "quarter" in data:
                     transcript_list.append(data)
         except Exception as e:
             print(f"Error loading transcript file {filename}: {e}")
-    # Sort transcripts by date descending
-    transcript_list.sort(key=lambda x: datetime.strptime(x.get('date', '1900-01-01'), '%Y-%m-%d'), reverse=True)
+    # Sort transcripts by year and quarter descending (newest first)
+    transcript_list.sort(key=lambda x: (x.get('year', 1900), x.get('quarter', 0)), reverse=True)
     return transcript_list
+
+@app.route('/compute_summary', methods=['POST'])
+def compute_summary():
+    ticker = request.form.get('ticker', '').upper().strip()
+    try:
+        year = int(request.form.get('year'))
+        quarter = int(request.form.get('quarter'))
+    except Exception as e:
+        return {"error": "Invalid year or quarter parameter."}, 400
+
+    try:
+        # Execute the transcript summary notebook with the given parameters.
+        pm.execute_notebook(
+            'transcript_summary.ipynb',
+            None,
+            parameters={'ticker': ticker, 'year': year, 'quarter': quarter}
+        )
+        # Build the expected output filename: e.g. AAPL_2021_Q1_summary.json
+        summary_path = os.path.join(os.getcwd(), 'summaries', f"{ticker}_{year}_Q{quarter}_summary.json")
+        if os.path.exists(summary_path):
+            with open(summary_path, 'r') as f:
+                summary_data = json.load(f)
+            # The notebook should output a dict with key "summary"
+            return summary_data
+        else:
+            return {"error": "Summary file not found."}, 500
+    except Exception as e:
+        return {"error": f"Error generating summary: {str(e)}"}, 500
 
 def delete_cache_files(ticker: str):
     """
