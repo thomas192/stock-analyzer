@@ -4,6 +4,7 @@ import glob
 import papermill as pm
 from datetime import datetime
 from flask import Flask, request, render_template, redirect, url_for, flash
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'  # Needed for flash messages
@@ -144,25 +145,30 @@ def index():
             flash('Ticker symbol is required.')
             return redirect(url_for('index'))
 
-        # Run the analysis notebook
-        if not run_analysis(ticker):
+        # Run notebooks concurrently.
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_analysis = executor.submit(run_analysis, ticker)
+            future_transcripts = executor.submit(run_transcripts, ticker)
+            analysis_ok = future_analysis.result()
+            transcripts_ok = future_transcripts.result()
+
+        if not analysis_ok:
             flash('There was an error running the analysis.')
             return redirect(url_for('index'))
 
-        # Load the analysis data
         metrics = load_analysis_data(ticker)
         if not metrics:
             flash('Analysis data not found. Please try again.')
             return redirect(url_for('index'))
 
-        # Run transcripts notebook and load transcript data
-        if not run_transcripts(ticker):
+        # Load transcript data only if the transcripts notebook ran successfully.
+        if transcripts_ok:
+            transcript_data = load_transcript_data(ticker)
+        else:
             flash('There was an error running the transcripts analysis.')
             transcript_data = {}
-        else:
-            transcript_data = load_transcript_data(ticker)
 
-        # Render the result page with analysis, dcf (empty), and transcripts.
+        # Render the result page.
         return render_template('result.html', ticker=ticker, metrics=metrics, 
                                dcf_results=None, dcf_params=None, transcript_data=transcript_data)
 
