@@ -40,7 +40,19 @@
   // Expose the historical metrics data to JavaScript
   window.historicalData = {{ metrics.historical_metrics | tojson | safe }};
 </script>
-<!-- Inline JavaScript for Modal & Charts -->
+<!-- JavaScript for Modal & Charts -->
 <script src="{{ url_for('static', filename='js/metrics.js') }}"></script>
+
+<!-- Reset Cache Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const resetCacheForm = document.querySelector('.inline-form');
+    if (resetCacheForm) {
+      resetCacheForm.addEventListener('submit', function() {
+        document.getElementById('loading').style.display = 'flex';
+      });
+    }
+  });
+</script>
 
 {% endblock %}

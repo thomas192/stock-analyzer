@@ -250,10 +250,6 @@ def compute_dcf():
 
 @app.route('/reset_cache', methods=['POST'])
 def reset_cache():
-    """
-    Route to reset the cache for a given ticker by deleting cached JSON files,
-    re-running the analysis notebook, and reloading the result page.
-    """
     ticker = request.form.get('ticker', '').upper().strip()
     if not ticker:
         flash('Ticker symbol missing for cache reset.')
@@ -267,12 +263,26 @@ def reset_cache():
         flash('Error re-running analysis after cache reset.')
         return redirect(url_for('index'))
 
+    # Re-run the transcripts notebook.
+    if not run_transcripts(ticker):
+        flash('Error running transcripts analysis after cache reset.')
+        transcript_data = []
+    else:
+        transcript_data = load_transcript_data(ticker)
+
     metrics = load_analysis_data(ticker)
     if not metrics:
         flash('Analysis data not found after cache reset.')
         return redirect(url_for('index'))
 
-    return render_template('result.html', ticker=ticker, metrics=metrics, dcf_results=None, dcf_params=None)
+    return render_template(
+        'result.html',
+        ticker=ticker,
+        metrics=metrics,
+        dcf_results=None,
+        dcf_params=None,
+        transcript_data=transcript_data
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
