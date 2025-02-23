@@ -20,10 +20,10 @@ All metrics are computed from scratch using fundamental data (balance sheet, cas
 
 ## Interface
 
-<img src="ressources/1.png" width="50%">
+<img src="ressources/1.png" width="70%">
 
-<img src="ressources/2.png" width="50%">
+<img src="ressources/2.png" width="70%">
 
-<img src="ressources/3.png" width="50%">
+<img src="ressources/3.png" width="70%">
 
-<img src="ressources/4.png" width="50%">
+<img src="ressources/4.png" width="70%">
