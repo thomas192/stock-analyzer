@@ -1,6 +1,6 @@
 # Stock Analyzer
 
-A couple notebooks and a frontend for them. Includes a lot of the data I use to make investment decisions. 
+A couple notebooks and a frontend for them. Includes some of the data I use to make investment decisions. 
 
 All metrics are computed from scratch using fundamental data (balance sheet, cash flow and income statement).
 
