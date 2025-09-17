@@ -30,6 +30,7 @@
     <span class="close-modal">&times;</span>
     <h3 id="chartTitle" class="chart-title"></h3>
     <canvas id="metricChart"></canvas>
+    <div id="trendBadges" class="trend-badges"></div>
   </div>
 </div>
 
@@ -37,8 +38,10 @@
 <script src="{{ url_for('static', filename='js/dcf.js') }}"></script>
 
 <script>
-  // Expose the historical metrics data to JavaScript
+  // Historical metrics drive the modal charts
   window.historicalData = {{ metrics.historical_metrics | tojson | safe }};
+  // Trend windows expose trailing averages for key ratios
+  window.metricTrends = {{ metrics.trend_windows | tojson | safe }};
 </script>
 <!-- JavaScript for Modal & Charts -->
 <script src="{{ url_for('static', filename='js/metrics.js') }}"></script>

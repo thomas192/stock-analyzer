@@ -7,7 +7,9 @@
         <div class="card clickable {% if metrics.avg_turnover_growth is not none and metrics.avg_turnover_growth > 0.1 %}highlight-green{% endif %}" 
             data-metric="turnover" 
             data-chart-type="bar" 
-            data-title="Revenue Growth (5Y)">
+            data-title="Revenue Growth (5Y)"
+            data-trend-key="revenue_growth"
+            data-trend-units="percent">
             <h3>Revenue Growth (5Y avg)</h3>
             <p>
             {{ metrics.avg_turnover_growth is not none and (metrics.avg_turnover_growth * 100)|round(2) ~ '%' or 'N/A' }}
@@ -17,7 +19,9 @@
         <div class="card clickable {% if metrics.avg_FCF_growth is not none and metrics.avg_FCF_growth > 0.1 %}highlight-green{% endif %}" 
             data-metric="FCF" 
             data-chart-type="bar" 
-            data-title="FCF Growth (5Y)">
+            data-title="FCF Growth (5Y)"
+            data-trend-key="fcf_growth"
+            data-trend-units="percent">
             <h3>FCF Growth (5Y avg)</h3>
             <p>
             {{ metrics.avg_FCF_growth is not none and (metrics.avg_FCF_growth * 100)|round(2) ~ '%' or 'N/A' }}
@@ -44,7 +48,9 @@
         <div class="card clickable {% if metrics.avg_stock_increase is not none and metrics.avg_stock_increase <= 0 %}highlight-green{% endif %}" 
             data-metric="shares" 
             data-chart-type="bar" 
-            data-title="Share Increase (5Y)">
+            data-title="Share Increase (5Y)"
+            data-trend-key="shares_growth"
+            data-trend-units="percent">
             <h3>Share Number (5Y avg)</h3>
             <p>
             {{ metrics.avg_stock_increase is not none and (metrics.avg_stock_increase * 100)|round(2) ~ '%' or 'N/A' }}

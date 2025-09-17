@@ -346,8 +346,8 @@ header p {
   background: #fff;
   padding: 30px;
   border-radius: 8px;
-  max-width: 600px;
-  width: 90%;
+  max-width: 900px;
+  width: 95%;
   position: relative;
 }
 
@@ -358,4 +358,37 @@ header p {
   font-size: 24px;
   cursor: pointer;
   color: #e74c3c;
+}
+
+
+.trend-badges {
+  display: none;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.trend-badge {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: #e1e8f0;
+  color: #2c3e50;
+}
+
+.trend-badge.positive {
+  background: #c0e6c2;
+  color: #1b5e20;
+}
+
+.trend-badge.negative {
+  background: #f6cacc;
+  color: #8b1a1a;
+}
+
+#metricChart {
+  width: 100% !important;
+  height: 420px !important;
 }
