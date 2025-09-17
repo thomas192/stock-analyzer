@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Analysis for {{ ticker }}{% endblock %}
 
@@ -8,7 +8,7 @@
     <h1>Analysis for {{ ticker }}</h1>
     <div class="actions">
       <a class="btn secondary" href="{{ url_for('web.index') }}">New Analysis</a>
-      <form action="{{ url_for('web.reset_cache') }}" method="post" class="inline-form">
+      <form action="{{ url_for('web.reset_cache') }}" method="post" class="inline-form" data-loading-target="loading">
         <input type="hidden" name="ticker" value="{{ ticker }}">
         <button type="submit" class="btn">Reset Cache</button>
       </form>
@@ -34,28 +34,8 @@
   </div>
 </div>
 
-<!-- Run and Display DCF Script -->
-<script src="{{ url_for('static', filename='js/dcf.js') }}"></script>
-
-<script>
-  // Historical metrics drive the modal charts
-  window.historicalData = {{ metrics.historical_metrics | tojson | safe }};
-  // Trend windows expose trailing averages for key ratios
-  window.metricTrends = {{ metrics.trend_windows | tojson | safe }};
-</script>
-<!-- JavaScript for Modal & Charts -->
-<script src="{{ url_for('static', filename='js/metrics.js') }}"></script>
-
-<!-- Reset Cache Script -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const resetCacheForm = document.querySelector('.inline-form');
-    if (resetCacheForm) {
-      resetCacheForm.addEventListener('submit', function() {
-        document.getElementById('loading').style.display = 'flex';
-      });
-    }
-  });
-</script>
-
+<script id="historical-metrics-data" type="application/json">{{ metrics.historical_metrics | default([], true) | tojson }}</script>
+<script id="metric-trends-data" type="application/json">{{ metrics.trend_windows | default({}, true) | tojson }}</script>
+<script id="dcf-results-data" type="application/json">{{ dcf_results | default({}, true) | tojson }}</script>
+<script id="transcripts-data" type="application/json">{{ transcript_data | default([], true) | tojson }}</script>
 {% endblock %}

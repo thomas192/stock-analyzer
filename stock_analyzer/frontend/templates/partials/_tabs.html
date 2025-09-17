@@ -1,22 +1,5 @@
-<div class="tabs">
-    <button class="tablink active" data-tab="metrics-tab">Metrics</button>
-    <button class="tablink" data-tab="dcf-tab">DCF</button>
-    <button class="tablink" data-tab="transcripts-tab">Transcripts</button>
-  </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.tablink').forEach(button => {
-      button.addEventListener('click', function() {
-        // Remove active class from all tab buttons.
-        document.querySelectorAll('.tablink').forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        // Hide all tab contents.
-        document.querySelectorAll('.tabcontent').forEach(tab => tab.style.display = 'none');
-        // Show the selected tab content.
-        const tabId = this.getAttribute('data-tab');
-        document.getElementById(tabId).style.display = 'block';
-      });
-    });
-  });
-</script>
+﻿<div class="tabs">
+  <button class="tablink active" data-tab="metrics-tab">Metrics</button>
+  <button class="tablink" data-tab="dcf-tab">DCF</button>
+  <button class="tablink" data-tab="transcripts-tab">Transcripts</button>
+</div>

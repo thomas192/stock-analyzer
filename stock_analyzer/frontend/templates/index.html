@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Stock Analysis{% endblock %}
 
@@ -18,16 +18,9 @@
       {% endif %}
     {% endwith %}
 
-    <form class="ticker-form" method="post">
+    <form class="ticker-form" method="post" data-loading-target="loading">
       <input type="text" name="ticker" placeholder="Enter Ticker (e.g., AAPL)" required>
       <button type="submit">Analyze</button>
     </form>
   </div>
-
-  <script>
-    // When the ticker form is submitted, show the loading animation
-    document.querySelector('.ticker-form').addEventListener('submit', function(e) {
-      document.getElementById('loading').style.display = 'flex';
-    });
-  </script>
 {% endblock %}

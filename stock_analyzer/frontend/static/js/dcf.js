@@ -1,107 +1,145 @@
-// Initialize the DCF chart with the returned results
-function initDCFChart(dcfResults) {
-    // Sort the DCF result keys (assumed to be numeric years) in ascending order
-    const sortedDCF = Object.entries(dcfResults)
-        .sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
-    const dcfLabels = sortedDCF.map(entry => entry[0]);
-    const dcfData = sortedDCF.map(entry => parseFloat(entry[1].toFixed(2)));
+﻿/**
+ * Module: dcf.js
+ * Purpose: Manage DCF form submission and valuation chart rendering.
+ * Example: setupDcfForm(null);
+ */
+let dcfChart = null;
 
-    const canvas = document.getElementById('dcfChart');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        // Optionally, if you need to destroy an existing chart instance, do so here.
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: dcfLabels,
-                datasets: [{
-                    label: 'Share Price',
-                    data: dcfData,
-                    backgroundColor: 'rgba(52, 152, 219, 0.6)',
-                    borderColor: 'rgba(41, 128, 185, 1)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#333',
-                        titleFont: { size: 14 },
-                        bodyFont: { size: 12 }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false, drawBorder: false },
-                        ticks: { font: { family: 'Roboto, sans-serif', size: 12 } }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        grid: { display: false, drawBorder: false },
-                        ticks: { font: { family: 'Roboto, sans-serif', size: 12 } }
-                    }
-                }
-            }
-        });
+function renderDcfChart(dcfResults) {
+  if (!dcfResults || typeof dcfResults !== 'object') {
+    return;
+  }
+  const canvas = document.getElementById('dcfChart');
+  if (!canvas) {
+    return;
+  }
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js is required to render DCF charts.');
+    return;
+  }
+
+  const sorted = Object.entries(dcfResults)
+    .map(([year, value]) => [year, Number(value)])
+    .filter(([, value]) => Number.isFinite(value))
+    .sort((a, b) => parseFloat(a[0]) - parseFloat(b[0]));
+  if (!sorted.length) {
+    return;
+  }
+
+  const labels = sorted.map(([year]) => year);
+  const values = sorted.map(([, value]) => Number(value.toFixed(2)));
+
+  if (dcfChart) {
+    dcfChart.destroy();
+  }
+
+  const ctx = canvas.getContext('2d');
+  dcfChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Share Price',
+        data: values,
+        backgroundColor: 'rgba(52, 152, 219, 0.6)',
+        borderColor: 'rgba(41, 128, 185, 1)',
+        borderWidth: 1,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#333',
+          titleFont: { size: 14 },
+          bodyFont: { size: 12 }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false, drawBorder: false },
+          ticks: { font: { family: 'Roboto, sans-serif', size: 12 } }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { display: false, drawBorder: false },
+          ticks: { font: { family: 'Roboto, sans-serif', size: 12 } }
+        }
+      }
     }
+  });
 }
 
-// Handler for DCF form submission via AJAX.
-function dcfFormSubmitHandler(e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const spinner = document.getElementById('loading');
-    if (spinner) spinner.style.display = 'flex';
+function attachDcfForm(form) {
+  if (!form || form.dataset.listenerBound === 'true') {
+    return;
+  }
+  form.addEventListener('submit', handleFormSubmit);
+  form.dataset.listenerBound = 'true';
+}
 
-    fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+function replaceDcfTab(htmlFragment) {
+  if (!htmlFragment) {
+    return null;
+  }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlFragment, 'text/html');
+  const incomingTab = doc.getElementById('dcf-tab');
+  if (!incomingTab) {
+    return null;
+  }
+  incomingTab.style.display = 'block';
+  const currentTab = document.getElementById('dcf-tab');
+  if (currentTab && currentTab.parentNode) {
+    currentTab.parentNode.replaceChild(incomingTab, currentTab);
+  }
+  return incomingTab;
+}
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+  const form = event.target;
+  const spinner = document.getElementById('loading');
+  if (spinner) {
+    spinner.style.display = 'flex';
+  }
+
+  fetch(form.action, {
+    method: 'POST',
+    body: new FormData(form),
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        console.error(data.error);
+        return;
+      }
+      const updatedTab = replaceDcfTab(data.dcf_html);
+      if (updatedTab) {
+        const updatedForm = updatedTab.querySelector('#dcf-form');
+        attachDcfForm(updatedForm);
+      }
+      if (data.dcf_results) {
+        renderDcfChart(data.dcf_results);
+      }
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-                if (spinner) spinner.style.display = 'none';
-                return;
-            }
-            // Parse the returned HTML and replace the current DCF partial.
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.dcf_html, 'text/html');
-            const newDCF = doc.getElementById('dcf-tab');
-            newDCF.style.display = 'block';
-            const oldDCF = document.getElementById('dcf-tab');
-            if (oldDCF && newDCF) {
-                oldDCF.parentNode.replaceChild(newDCF, oldDCF);
-            }
-            // Reattach the event listener to the new form.
-            attachDCFFormListener();
-
-            // Initialize the Chart if dcf_results exist.
-            if (data.dcf_results && Object.keys(data.dcf_results).length > 0) {
-                initDCFChart(data.dcf_results);
-            }
-            if (spinner) spinner.style.display = 'none';
-        })
-        .catch(error => {
-            console.error("Error computing DCF:", error);
-            if (spinner) spinner.style.display = 'none';
-        });
+    .catch(error => {
+      console.error('Error computing DCF:', error);
+    })
+    .finally(() => {
+      if (spinner) {
+        spinner.style.display = 'none';
+      }
+    });
 }
 
-// Attach the submit event listener to the DCF form.
-function attachDCFFormListener() {
-    const dcfForm = document.getElementById('dcf-form');
-    if (dcfForm) {
-        dcfForm.addEventListener('submit', dcfFormSubmitHandler);
-    }
+export function setupDcfForm(initialResults) {
+  const form = document.getElementById('dcf-form');
+  attachDcfForm(form);
+  if (initialResults && Object.keys(initialResults).length > 0) {
+    renderDcfChart(initialResults);
+  }
 }
-
-// Attach the listener when the DOM is ready.
-document.addEventListener('DOMContentLoaded', function () {
-    attachDCFFormListener();
-});

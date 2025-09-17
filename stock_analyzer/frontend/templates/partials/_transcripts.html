@@ -1,24 +1,21 @@
-<div id="transcripts-tab" class="tabcontent" style="display: none;">
+﻿<div id="transcripts-tab" class="tabcontent" style="display: none;">
   <section class="transcripts-section">
     <h2>Transcripts</h2>
     {% if transcript_data and transcript_data|length > 0 %}
-      <!-- Hidden field for ticker -->
       <input type="hidden" id="transcript-ticker" value="{{ ticker }}">
-      
-      <label for="transcript-select">Select transcript:</label>
-      <select id="transcript-select">
-        {% for transcript in transcript_data %}
-          <option value="{{ loop.index0 }}">Q{{ transcript.quarter }} {{ transcript.year }}</option>
-        {% endfor %}
-      </select>
-      
-      <!-- Button to generate the AI summary -->
-      <button id="generate-summary" class="btn">Generate AI Summary</button>
-      
-      <!-- Container to display the generated summary above the transcript -->
+
+      <div class="transcript-controls">
+        <label for="transcript-select">Select transcript:</label>
+        <select id="transcript-select">
+          {% for transcript in transcript_data %}
+            <option value="{{ loop.index0 }}">Q{{ transcript.quarter }} {{ transcript.year }}</option>
+          {% endfor %}
+        </select>
+        <button id="generate-summary" class="btn">Generate AI Summary</button>
+      </div>
+
       <div id="summary-content"></div>
-      
-      <!-- Container to display the selected transcript -->
+
       <div id="transcript-content">
         {% set first_transcript = transcript_data[0] %}
         <p><strong>Period:</strong> Q{{ first_transcript.quarter }} {{ first_transcript.year }}</p>
@@ -33,10 +30,3 @@
     {% endif %}
   </section>
 </div>
-
-<!-- Expose transcript_data as a global JavaScript variable -->
-<script>
-  window.transcriptsData = {{ transcript_data|tojson|safe }};
-</script>
-<!-- Include the dedicated JS for transcripts functionality -->
-<script src="{{ url_for('static', filename='js/transcripts.js') }}"></script>
