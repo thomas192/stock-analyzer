@@ -7,8 +7,8 @@
   <header class="result-header">
     <h1>Analysis for {{ ticker }}</h1>
     <div class="actions">
-      <a class="btn secondary" href="{{ url_for('index') }}">New Analysis</a>
-      <form action="{{ url_for('reset_cache') }}" method="post" class="inline-form">
+      <a class="btn secondary" href="{{ url_for('web.index') }}">New Analysis</a>
+      <form action="{{ url_for('web.reset_cache') }}" method="post" class="inline-form">
         <input type="hidden" name="ticker" value="{{ ticker }}">
         <button type="submit" class="btn">Reset Cache</button>
       </form>

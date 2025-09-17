@@ -21,7 +21,7 @@ Stock Analyzer is a Flask application that orchestrates a set of parameterised J
 - `dcf.ipynb` - DCF notebook consuming UI parameters and writing `dcf/<ticker>.json`.
 - `transcripts.ipynb` - downloads transcripts into `transcripts/`.
 - `transcript_summary.ipynb` - generates Claude summaries into `summaries/`.
-- `static/`, `templates/` - frontend assets.
+- `stock_analyzer/frontend/` - frontend assets (templates + static).
 - Runtime caches: `analysis/`, `dcf/`, `data/`, `summaries/`, `transcripts/` (gitignored and created on demand).
 
 ## Prerequisites

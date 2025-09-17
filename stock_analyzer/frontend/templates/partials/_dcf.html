@@ -2,7 +2,7 @@
     <!-- DCF Analysis Section -->
     <section class="dcf-section">
       <h2>DCF Analysis</h2>
-      <form id="dcf-form" action="{{ url_for('compute_dcf') }}" method="post" class="dcf-form">
+      <form id="dcf-form" action="{{ url_for('web.compute_dcf') }}" method="post" class="dcf-form">
         <input type="hidden" name="ticker" value="{{ ticker }}">
         <div class="form-row">
             <label>FCF per Share</label>
