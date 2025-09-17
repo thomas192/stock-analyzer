@@ -68,18 +68,28 @@ This creates `.venv/` in the project root. Activate it if you prefer working ins
 
 You can also skip manual activation and prefix commands with `uv run`.
 
-3. Install the runtime dependencies.
+3. Initialise dependency metadata (run once):
 ```bash
-uv pip install flask papermill python-dotenv pandas requests yfinance langchain-anthropic
+uv init --package
 ```
-Install `jupyter` if you want to open the notebooks interactively:
+This creates `pyproject.toml` with your interpreter constraint. If the file already exists, skip this step.
+
+4. Add runtime dependencies (updates `pyproject.toml` and `uv.lock`):
 ```bash
-uv pip install jupyter
+uv add flask papermill python-dotenv pandas requests yfinance langchain-anthropic
 ```
-Tip: run `uv init` once to generate a `pyproject.toml`, then manage packages declaratively with `uv add <package>`.
+Add developer tools as needed:
+```bash
+uv add --dev jupyter
+```
+ 
+5. Install the locked environment (creates `.venv/` if it does not exist):
+```bash
+uv sync
+```
+Commit `pyproject.toml` and `uv.lock` so teammates can reproduce the environment with a single `uv sync`.
 
-4. Ensure `.env` contains your API keys before starting the app.
-
+6. Ensure `.env` contains your API keys before starting the app.
 The first execution will download data and create the runtime folders. Cached JSON files reduce API calls on subsequent runs.
 
 ## Running the App
